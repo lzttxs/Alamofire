@@ -335,7 +335,7 @@ private let arrayParametersKey = "arrayParametersKey"
 
 extension Array {
     /// Convert the receiver array to a `Parameters` object.
-    func asParameters() -> Parameters {
+    public func asParameters() -> Parameters {
         return [arrayParametersKey: self]
     }
 }

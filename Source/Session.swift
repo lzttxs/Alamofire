@@ -252,7 +252,7 @@ open class Session {
     /// Closure which provides a `URLRequest` for mutation.
     public typealias RequestModifier = (inout URLRequest) throws -> Void
 
-  struct RequestConvertible: URLRequestConvertible {
+    public struct RequestConvertible: URLRequestConvertible {
         let url: URLConvertible
         let method: HTTPMethod
         let parameters: Parameters?
@@ -260,7 +260,7 @@ open class Session {
         var headers: HTTPHeaders?
         let requestModifier: RequestModifier?
 
-        func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest {
+        public func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest {
           //HongSong HttpDNS to change URL's host with IP, and to set "Host" is key,orginal host is value in httpHeader
             var request: URLRequest
          
