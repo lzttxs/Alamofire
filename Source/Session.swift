@@ -252,7 +252,7 @@ open class Session {
     /// Closure which provides a `URLRequest` for mutation.
     public typealias RequestModifier = (inout URLRequest) throws -> Void
 
-    public struct RequestConvertible: URLRequestConvertible {
+    struct RequestConvertible: URLRequestConvertible {
         let url: URLConvertible
         let method: HTTPMethod
         let parameters: Parameters?
@@ -281,6 +281,10 @@ open class Session {
             try requestModifier?(&request)
 
             return try encoding.encode(request, with: parameters)
+        }
+        
+        public func getURL() -> URLConvertible {
+            return self.url
         }
     }
 
@@ -329,6 +333,10 @@ open class Session {
             try requestModifier?(&request)
 
             return try parameters.map { try encoder.encode($0, into: request) } ?? request
+        }
+        
+        public func getURL() -> URLConvertible {
+            return self.url
         }
     }
 
@@ -628,6 +636,10 @@ open class Session {
 
             return request
         }
+        
+        public func getURL() -> URLConvertible {
+            return self.url
+        }
     }
 
     struct Upload: UploadConvertible {
@@ -640,6 +652,10 @@ open class Session {
 
         func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest {
             try request.asURLRequest(ipTacticianer: ipTacticianer)
+        }
+        
+        public func getURL() -> URLConvertible {
+            return request.getURL()
         }
     }
 
