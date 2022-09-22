@@ -87,4 +87,9 @@ extension MultipartUpload: UploadConvertible {
     func createUploadable() throws -> UploadRequest.Uploadable {
         try result.get()
     }
+    
+    func getURL() throws -> URL? {
+        return try request.getURL()
+    }
+    
 }
