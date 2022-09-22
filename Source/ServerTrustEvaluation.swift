@@ -73,21 +73,6 @@ open class ServerTrustManager {
     #endif
 }
 
-// MARK: - HongSOng HttpDns ServerTrustManager
-final class HttpDnsServerTrustManager: ServerTrustManager {
-   
-  let defaultTrustEvaluator = HttpDnsTrustEvaluator()
-  
-  public init() {
-    super.init(evaluators: [:])
-  }
-  
-  public override func serverTrustEvaluator(forHost host: String) throws -> ServerTrustEvaluating? {
-        return defaultTrustEvaluator
-  }
-  
-}
-
 /// A protocol describing the API used to evaluate server trusts.
 public protocol ServerTrustEvaluating {
     #if os(Linux) || os(Windows)
@@ -126,19 +111,6 @@ public final class DefaultTrustEvaluator: ServerTrustEvaluating {
         }
 
         try trust.af.performDefaultValidation(forHost: host)
-    }
-}
-
-// MARK: - HongSong HttpDNS ServerTrustManager
-public final class HttpDnsTrustEvaluator: ServerTrustEvaluating {
-  
-    public func evaluate(_ trust: SecTrust, forHost host: String, task: URLSessionTask) throws {
-      var trustHost = host
-      if let taskHost = task.currentRequest?.value(forHTTPHeaderField: "Host") {
-        trustHost = taskHost
-      }
-      
-      try trust.af.performValidation(forHost: trustHost)
     }
 }
 
