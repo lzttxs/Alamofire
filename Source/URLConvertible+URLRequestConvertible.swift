@@ -73,9 +73,9 @@ public protocol URLRequestConvertible {
     /// - Throws:  Any error thrown while constructing the `URLRequest`.
     func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest
     
-    /// Return a `URLConvertible`
-    /// - Returns: A `URLConvertible`
-    func getURL() -> URLConvertible
+    /// Return a `URL`
+    /// - Returns: A `URL` or throws if an `Error` was encountered.
+    func getURL() throws -> URL?
 }
 
 extension URLRequestConvertible {
@@ -87,7 +87,7 @@ extension URLRequest: URLRequestConvertible {
     /// Returns `self`.
     public func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest { return self }
     
-    public func getURL() -> URLConvertible { return self.url?.absoluteString ?? ""}
+    public func getURL() throws -> URL? { return self.url }
 }
 
 // MARK: -

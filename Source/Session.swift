@@ -283,8 +283,8 @@ open class Session {
             return try encoding.encode(request, with: parameters)
         }
         
-        public func getURL() -> URLConvertible {
-            return self.url
+        public func getURL() throws -> URL? {
+            return try self.url.asURL()
         }
     }
 
@@ -335,8 +335,8 @@ open class Session {
             return try parameters.map { try encoder.encode($0, into: request) } ?? request
         }
         
-        public func getURL() -> URLConvertible {
-            return self.url
+        public func getURL() throws -> URL? {
+            return try self.url.asURL()
         }
     }
 
@@ -637,8 +637,8 @@ open class Session {
             return request
         }
         
-        public func getURL() -> URLConvertible {
-            return self.url
+        public func getURL() throws -> URL? {
+            return try self.url.asURL()
         }
     }
 
@@ -654,8 +654,8 @@ open class Session {
             try request.asURLRequest(ipTacticianer: ipTacticianer)
         }
         
-        public func getURL() -> URLConvertible {
-            return request.getURL()
+        public func getURL() throws -> URL? {
+            return try request.getURL()
         }
     }
 
