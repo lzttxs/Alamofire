@@ -73,6 +73,21 @@ open class ServerTrustManager {
     #endif
 }
 
+// MARK: - HongSOng HttpDns ServerTrustManager
+final class HttpDnsServerTrustManager: ServerTrustManager {
+   
+  let defaultTrustEvaluator = HttpDnsTrustEvaluator()
+  
+  public init() {
+    super.init(evaluators: [:])
+  }
+  
+  public override func serverTrustEvaluator(forHost host: String) throws -> ServerTrustEvaluating? {
+        return defaultTrustEvaluator
+  }
+  
+}
+
 /// A protocol describing the API used to evaluate server trusts.
 public protocol ServerTrustEvaluating {
     #if os(Linux) || os(Windows)
@@ -85,7 +100,7 @@ public protocol ServerTrustEvaluating {
     ///   - host:  The host for which to evaluate the `SecTrust` value.
     ///
     /// - Returns: A `Bool` indicating whether the evaluator considers the `SecTrust` value valid for `host`.
-    func evaluate(_ trust: SecTrust, forHost host: String) throws
+    func evaluate(_ trust: SecTrust, forHost host: String, task: URLSessionTask) throws
     #endif
 }
 
@@ -105,12 +120,25 @@ public final class DefaultTrustEvaluator: ServerTrustEvaluating {
         self.validateHost = validateHost
     }
 
-    public func evaluate(_ trust: SecTrust, forHost host: String) throws {
+    public func evaluate(_ trust: SecTrust, forHost host: String, task: URLSessionTask) throws {
         if validateHost {
             try trust.af.performValidation(forHost: host)
         }
 
         try trust.af.performDefaultValidation(forHost: host)
+    }
+}
+
+// MARK: - HongSong HttpDNS ServerTrustManager
+public final class HttpDnsTrustEvaluator: ServerTrustEvaluating {
+  
+    public func evaluate(_ trust: SecTrust, forHost host: String, task: URLSessionTask) throws {
+      var trustHost = host
+      if let taskHost = task.currentRequest?.value(forHTTPHeaderField: "Host") {
+        trustHost = taskHost
+      }
+      
+      try trust.af.performValidation(forHost: trustHost)
     }
 }
 
@@ -172,7 +200,7 @@ public final class RevocationTrustEvaluator: ServerTrustEvaluating {
         self.options = options
     }
 
-    public func evaluate(_ trust: SecTrust, forHost host: String) throws {
+    public func evaluate(_ trust: SecTrust, forHost host: String, task: URLSessionTask) throws {
         if performDefaultValidation {
             try trust.af.performDefaultValidation(forHost: host)
         }
@@ -254,7 +282,7 @@ public final class PinnedCertificatesTrustEvaluator: ServerTrustEvaluating {
         self.validateHost = validateHost
     }
 
-    public func evaluate(_ trust: SecTrust, forHost host: String) throws {
+    public func evaluate(_ trust: SecTrust, forHost host: String, task: URLSessionTask) throws {
         guard !certificates.isEmpty else {
             throw AFError.serverTrustEvaluationFailed(reason: .noCertificatesFound)
         }
@@ -344,7 +372,7 @@ public final class PublicKeysTrustEvaluator: ServerTrustEvaluating {
         self.validateHost = validateHost
     }
 
-    public func evaluate(_ trust: SecTrust, forHost host: String) throws {
+    public func evaluate(_ trust: SecTrust, forHost host: String, task: URLSessionTask) throws {
         guard !keys.isEmpty else {
             throw AFError.serverTrustEvaluationFailed(reason: .noPublicKeysFound)
         }
@@ -415,8 +443,8 @@ public final class CompositeTrustEvaluator: ServerTrustEvaluating {
         self.evaluators = evaluators
     }
 
-    public func evaluate(_ trust: SecTrust, forHost host: String) throws {
-        try evaluators.evaluate(trust, forHost: host)
+    public func evaluate(_ trust: SecTrust, forHost host: String, task: URLSessionTask) throws {
+        try evaluators.evaluate(trust, forHost: host, task: task)
     }
 }
 
@@ -451,7 +479,7 @@ public final class DisabledTrustEvaluator: ServerTrustEvaluating {
     /// Creates an instance.
     public init() {}
 
-    public func evaluate(_ trust: SecTrust, forHost host: String) throws {}
+    public func evaluate(_ trust: SecTrust, forHost host: String, task: URLSessionTask) throws {}
 }
 
 // MARK: - Extensions
@@ -467,9 +495,9 @@ extension Array where Element == ServerTrustEvaluating {
     ///   - host:  The host for which to evaluate the `SecTrust` value.
     ///
     /// - Returns: Whether or not the evaluator considers the `SecTrust` value valid for `host`.
-    public func evaluate(_ trust: SecTrust, forHost host: String) throws {
+    public func evaluate(_ trust: SecTrust, forHost host: String, task: URLSessionTask) throws {
         for evaluator in self {
-            try evaluator.evaluate(trust, forHost: host)
+            try evaluator.evaluate(trust, forHost: host, task: task)
         }
     }
     #endif
@@ -554,7 +582,25 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     @available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *)
     public func evaluate() throws {
         var error: CFError?
-        let evaluationSucceeded = SecTrustEvaluateWithError(type, &error)
+        ///HongSong Use UnsafeMutablePointer to resolve memory leak for SecTrustEvaluateWithError API
+        let unsafeError = UnsafeMutablePointer<CFError?>.allocate(capacity: 1)
+        var evaluationSucceeded = SecTrustEvaluateWithError(type, unsafeError)
+        error = unsafeError.pointee
+        unsafeError.deinitialize(count: 1)
+        unsafeError.deallocate()
+        
+        ///HongSong httpdns to adaptive SecTrust
+        var result = SecTrustResultType.invalid
+        SecTrustGetTrustResult(type, &result)
+        if (result == .recoverableTrustFailure) {
+            let errDataRef = SecTrustCopyExceptions(type);
+            SecTrustSetExceptions(type, errDataRef);
+            let unsafeError = UnsafeMutablePointer<CFError?>.allocate(capacity: 1)
+            evaluationSucceeded = SecTrustEvaluateWithError(type, unsafeError)
+            error = unsafeError.pointee
+            unsafeError.deinitialize(count: 1)
+            unsafeError.deallocate()
+        }
 
         if !evaluationSucceeded {
             throw AFError.serverTrustEvaluationFailed(reason: .trustEvaluationFailed(error: error))
@@ -573,6 +619,13 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     public func validate(errorProducer: (_ status: OSStatus, _ result: SecTrustResultType) -> Error) throws {
         var result = SecTrustResultType.invalid
         let status = SecTrustEvaluate(type, &result)
+      
+      ///HongSong httpdns to adaptive SecTrust
+      if (result == .recoverableTrustFailure) {
+          let errDataRef = SecTrustCopyExceptions(type);
+          SecTrustSetExceptions(type, errDataRef);
+          SecTrustEvaluate(type, &result);
+      }
 
         guard status.af.isSuccess && result.af.isSuccess else {
             throw errorProducer(status, result)

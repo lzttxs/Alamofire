@@ -157,7 +157,7 @@ public struct URLEncoding: ParameterEncoding {
     // MARK: Encoding
 
     public func encode(_ urlRequest: URLRequestConvertible, with parameters: Parameters?) throws -> URLRequest {
-        var urlRequest = try urlRequest.asURLRequest()
+        var urlRequest = try urlRequest.asURLRequest(ipTacticianer: nil)
 
         guard let parameters = parameters else { return urlRequest }
 
@@ -167,6 +167,14 @@ public struct URLEncoding: ParameterEncoding {
             }
 
             if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false), !parameters.isEmpty {
+                //HongSong fix the get parameters repetition
+                var parameters = parameters
+                if let queryItems = urlComponents.queryItems {
+                    for item in queryItems {
+                        parameters.removeValue(forKey: item.name)
+                    }
+                }
+
                 let percentEncodedQuery = (urlComponents.percentEncodedQuery.map { $0 + "&" } ?? "") + query(parameters)
                 urlComponents.percentEncodedQuery = percentEncodedQuery
                 urlRequest.url = urlComponents.url
@@ -266,7 +274,7 @@ public struct JSONEncoding: ParameterEncoding {
     // MARK: Encoding
 
     public func encode(_ urlRequest: URLRequestConvertible, with parameters: Parameters?) throws -> URLRequest {
-        var urlRequest = try urlRequest.asURLRequest()
+        var urlRequest = try urlRequest.asURLRequest(ipTacticianer: nil)
 
         guard let parameters = parameters else { return urlRequest }
 
@@ -298,7 +306,7 @@ public struct JSONEncoding: ParameterEncoding {
     /// - Returns:      The encoded `URLRequest`.
     /// - Throws:       Any `Error` produced during encoding.
     public func encode(_ urlRequest: URLRequestConvertible, withJSONObject jsonObject: Any? = nil) throws -> URLRequest {
-        var urlRequest = try urlRequest.asURLRequest()
+        var urlRequest = try urlRequest.asURLRequest(ipTacticianer: nil)
 
         guard let jsonObject = jsonObject else { return urlRequest }
 
@@ -321,6 +329,106 @@ public struct JSONEncoding: ParameterEncoding {
         return urlRequest
     }
 }
+// MARK: - HongSong support array type paramsters
+
+private let arrayParametersKey = "arrayParametersKey"
+
+extension Array {
+    /// Convert the receiver array to a `Parameters` object.
+    func asParameters() -> Parameters {
+        return [arrayParametersKey: self]
+    }
+}
+
+/// Convert the parameters into a json array, and it is added as the request body.
+/// The array must be sent as parameters using its `asParameters` method.
+public struct ArrayEncoding: ParameterEncoding {
+ 
+    /// The options for writing the parameters as JSON data.
+    public let options: JSONSerialization.WritingOptions
+ 
+    /// Creates a new instance of the encoding using the given options
+    ///
+    /// - parameter options: The options used to encode the json. Default is `[]`
+    ///
+    /// - returns: The new instance
+    public init(options: JSONSerialization.WritingOptions = []) {
+        self.options = options
+    }
+    
+ 
+    public func encode(_ urlRequest: URLRequestConvertible, with parameters: Parameters?) throws -> URLRequest {
+        var urlRequest = try urlRequest.asURLRequest(ipTacticianer: nil)
+ 
+        guard let parameters = parameters, let array = parameters[arrayParametersKey] else {
+            return urlRequest
+        }
+ 
+        do {
+            let data = try JSONSerialization.data(withJSONObject: array, options: options)
+ 
+            if urlRequest.headers["Content-Type"] == nil {
+                urlRequest.headers.update(.contentType("application/json"))
+            }
+ 
+            urlRequest.httpBody = data
+ 
+        } catch {
+            throw AFError.parameterEncodingFailed(reason: .jsonEncodingFailed(error: error))
+        }
+ 
+        return urlRequest
+    }
+}
+
+//HongSong use form for maat request
+public struct ArrayFormEncoding: ParameterEncoding {
+ 
+    /// The options for writing the parameters as JSON data.
+    public let options: JSONSerialization.WritingOptions
+ 
+    /// Creates a new instance of the encoding using the given options
+    ///
+    /// - parameter options: The options used to encode the json. Default is `[]`
+    ///
+    /// - returns: The new instance
+    public init(options: JSONSerialization.WritingOptions = []) {
+        self.options = options
+    }
+    
+ 
+    public func encode(_ urlRequest: URLRequestConvertible, with parameters: Parameters?) throws -> URLRequest {
+        var urlRequest = try urlRequest.asURLRequest(ipTacticianer: nil)
+ 
+        guard let parameters = parameters, let array = parameters[arrayParametersKey] else {
+            return urlRequest
+        }
+ 
+        do {
+            
+            let jsonData = try JSONSerialization.data(withJSONObject: array, options: options)
+            
+            if let jsonStr = String(data: jsonData, encoding: String.Encoding.utf8),
+                let encodeStr = jsonStr.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) {
+                
+                if urlRequest.headers["Content-Type"] == nil {
+                    urlRequest.headers.update(.contentType("application/x-www-form-urlencoded; charset=utf-8"))
+                }
+     
+                urlRequest.httpBody =  Data(encodeStr.utf8)
+            } else {
+                throw AFError.parameterEncodingFailed(reason: .customFromEncodingFailed)
+            }
+ 
+        } catch {
+            throw AFError.parameterEncodingFailed(reason: .customEncodingFailed(error: error))
+        }
+ 
+        return urlRequest
+    }
+}
+
+// MARK: -
 
 extension JSONEncoding.Error {
     public var localizedDescription: String {
@@ -330,8 +438,6 @@ extension JSONEncoding.Error {
         """
     }
 }
-
-// MARK: -
 
 extension NSNumber {
     fileprivate var isBool: Bool {

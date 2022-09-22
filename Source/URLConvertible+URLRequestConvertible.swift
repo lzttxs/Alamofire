@@ -71,17 +71,17 @@ public protocol URLRequestConvertible {
     ///
     /// - Returns: A `URLRequest`.
     /// - Throws:  Any error thrown while constructing the `URLRequest`.
-    func asURLRequest() throws -> URLRequest
+    func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest
 }
 
 extension URLRequestConvertible {
     /// The `URLRequest` returned by discarding any `Error` encountered.
-    public var urlRequest: URLRequest? { try? asURLRequest() }
+    public var urlRequest: URLRequest? { try? asURLRequest(ipTacticianer: nil) }
 }
 
 extension URLRequest: URLRequestConvertible {
     /// Returns `self`.
-    public func asURLRequest() throws -> URLRequest { self }
+    public func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest { return self }
 }
 
 // MARK: -

@@ -73,8 +73,9 @@ final class MultipartUpload {
 }
 
 extension MultipartUpload: UploadConvertible {
-    func asURLRequest() throws -> URLRequest {
-        var urlRequest = try request.asURLRequest()
+   
+   func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest {
+        var urlRequest = try request.asURLRequest(ipTacticianer: ipTacticianer)
 
         $multipartFormData.read { multipartFormData in
             urlRequest.headers.add(.contentType(multipartFormData.contentType))

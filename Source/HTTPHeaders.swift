@@ -406,7 +406,8 @@ extension HTTPHeader {
 
         let alamofireVersion = "Alamofire/\(version)"
 
-        let userAgent = "\(executable)/\(appVersion) (\(bundle); build:\(appBuild); \(osNameVersion)) \(alamofireVersion)"
+        let executableEncode = executable.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let userAgent = "\(executableEncode)/\(appVersion) (\(bundle); build:\(appBuild); \(osNameVersion)) \(alamofireVersion)"
 
         return .userAgent(userAgent)
     }()

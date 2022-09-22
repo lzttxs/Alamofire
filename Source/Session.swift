@@ -65,6 +65,7 @@ open class Session {
     public let eventMonitor: CompositeEventMonitor
     /// `EventMonitor`s included in all instances. `[AlamofireNotifications()]` by default.
     public let defaultEventMonitors: [EventMonitor] = [AlamofireNotifications()]
+    public let ipTacticianer: IPTacticianer?
 
     /// Internal map between `Request`s and any `URLSessionTasks` that may be in flight for them.
     var requestTaskMap = RequestTaskMap()
@@ -115,7 +116,8 @@ open class Session {
                 serverTrustManager: ServerTrustManager? = nil,
                 redirectHandler: RedirectHandler? = nil,
                 cachedResponseHandler: CachedResponseHandler? = nil,
-                eventMonitors: [EventMonitor] = []) {
+                eventMonitors: [EventMonitor] = [],
+                ipTacticianer: IPTacticianer? = nil) {
         precondition(session.configuration.identifier == nil,
                      "Alamofire does not support background URLSessionConfigurations.")
         precondition(session.delegateQueue.underlyingQueue === rootQueue,
@@ -131,6 +133,7 @@ open class Session {
         self.serverTrustManager = serverTrustManager
         self.redirectHandler = redirectHandler
         self.cachedResponseHandler = cachedResponseHandler
+        self.ipTacticianer = ipTacticianer
         eventMonitor = CompositeEventMonitor(monitors: defaultEventMonitors + eventMonitors)
         delegate.eventMonitor = eventMonitor
         delegate.stateProvider = self
@@ -180,7 +183,8 @@ open class Session {
                             serverTrustManager: ServerTrustManager? = nil,
                             redirectHandler: RedirectHandler? = nil,
                             cachedResponseHandler: CachedResponseHandler? = nil,
-                            eventMonitors: [EventMonitor] = []) {
+                            eventMonitors: [EventMonitor] = [],
+                            ipTacticianer: IPTacticianer? = nil) {
         precondition(configuration.identifier == nil, "Alamofire does not support background URLSessionConfigurations.")
 
         // Retarget the incoming rootQueue for safety, unless it's the main queue, which we know is safe.
@@ -199,7 +203,8 @@ open class Session {
                   serverTrustManager: serverTrustManager,
                   redirectHandler: redirectHandler,
                   cachedResponseHandler: cachedResponseHandler,
-                  eventMonitors: eventMonitors)
+                  eventMonitors: eventMonitors,
+                  ipTacticianer: ipTacticianer)
     }
 
     deinit {
@@ -247,16 +252,32 @@ open class Session {
     /// Closure which provides a `URLRequest` for mutation.
     public typealias RequestModifier = (inout URLRequest) throws -> Void
 
-    struct RequestConvertible: URLRequestConvertible {
+  struct RequestConvertible: URLRequestConvertible {
         let url: URLConvertible
         let method: HTTPMethod
         let parameters: Parameters?
         let encoding: ParameterEncoding
-        let headers: HTTPHeaders?
+        var headers: HTTPHeaders?
         let requestModifier: RequestModifier?
 
-        func asURLRequest() throws -> URLRequest {
-            var request = try URLRequest(url: url, method: method, headers: headers)
+        func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest {
+          //HongSong HttpDNS to change URL's host with IP, and to set "Host" is key,orginal host is value in httpHeader
+            var request: URLRequest
+         
+            if let ipTacticianer = ipTacticianer, let orgUrl = try? url.asURL(), let (targetURL, orgHost) = ipTacticianer.replaceHost(url: orgUrl) {
+              
+              var newHeaders:HTTPHeaders
+              if let orgHeaders = headers {
+                newHeaders = HTTPHeaders(orgHeaders.dictionary)
+                newHeaders.add(name: "Host", value: orgHost)
+              } else {
+                newHeaders = [HTTPHeader(name: "Host", value: orgHost)];
+              }
+              request = try URLRequest(url: targetURL, method: method, headers: newHeaders)
+            } else {
+              request = try URLRequest(url: url, method: method, headers: headers)
+            }
+         
             try requestModifier?(&request)
 
             return try encoding.encode(request, with: parameters)
@@ -303,7 +324,7 @@ open class Session {
         let headers: HTTPHeaders?
         let requestModifier: RequestModifier?
 
-        func asURLRequest() throws -> URLRequest {
+        func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest {
             var request = try URLRequest(url: url, method: method, headers: headers)
             try requestModifier?(&request)
 
@@ -601,7 +622,7 @@ open class Session {
         let headers: HTTPHeaders?
         let requestModifier: RequestModifier?
 
-        func asURLRequest() throws -> URLRequest {
+        func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest {
             var request = try URLRequest(url: url, method: method, headers: headers)
             try requestModifier?(&request)
 
@@ -617,8 +638,8 @@ open class Session {
             try uploadable.createUploadable()
         }
 
-        func asURLRequest() throws -> URLRequest {
-            try request.asURLRequest()
+        func asURLRequest(ipTacticianer: IPTacticianer?) throws -> URLRequest {
+            try request.asURLRequest(ipTacticianer: ipTacticianer)
         }
     }
 
@@ -1055,7 +1076,7 @@ open class Session {
         let initialRequest: URLRequest
 
         do {
-            initialRequest = try convertible.asURLRequest()
+            initialRequest = try convertible.asURLRequest(ipTacticianer: self.ipTacticianer)
             try initialRequest.validate()
         } catch {
             rootQueue.async { request.didFailToCreateURLRequest(with: error.asAFError(or: .createURLRequestFailed(error: error))) }

@@ -74,6 +74,8 @@ public enum AFError: Error {
         case jsonEncodingFailed(error: Error)
         /// Custom parameter encoding failed due to the associated `Error`.
         case customEncodingFailed(error: Error)
+        //HongSong form parameter encoding failed
+        case customFromEncodingFailed
     }
 
     /// The underlying reason the `.parameterEncoderFailed` error occurred.
@@ -465,7 +467,7 @@ extension AFError.ParameterEncodingFailureReason {
         case let .jsonEncodingFailed(error),
              let .customEncodingFailed(error):
             return error
-        case .missingURL:
+        case .missingURL, .customFromEncodingFailed:
             return nil
         }
     }
@@ -715,6 +717,8 @@ extension AFError.ParameterEncodingFailureReason {
             return "JSON could not be encoded because of error:\n\(error.localizedDescription)"
         case let .customEncodingFailed(error):
             return "Custom parameter encoder failed with error: \(error.localizedDescription)"
+        case .customFromEncodingFailed:
+            return "Form parameter could not be encoded"
         }
     }
 }

@@ -418,6 +418,10 @@
 		4CFB030E1D7D2FA20056F249 /* utf8_string.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4CFB02F41D7D2FA20056F249 /* utf8_string.txt */; };
 		4CFB030F1D7D2FA20056F249 /* utf8_string.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4CFB02F41D7D2FA20056F249 /* utf8_string.txt */; };
 		4DD67C251A5C590000ED2280 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = F897FF4019AA800700AB5182 /* Alamofire.swift */; };
+		6D3957DE28DC0F430080446A /* IPTacticianer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D3957DD28DC0F430080446A /* IPTacticianer.swift */; };
+		6D3957DF28DC0F430080446A /* IPTacticianer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D3957DD28DC0F430080446A /* IPTacticianer.swift */; };
+		6D3957E028DC0F430080446A /* IPTacticianer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D3957DD28DC0F430080446A /* IPTacticianer.swift */; };
+		6D3957E128DC0F430080446A /* IPTacticianer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D3957DD28DC0F430080446A /* IPTacticianer.swift */; };
 		8035DB621BAB492500466CB3 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F8111E3319A95C8B0040E7D1 /* Alamofire.framework */; };
 		E4202FD01B667AA100C997FB /* ParameterEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CE2724E1AF88FB500F1D59A /* ParameterEncoding.swift */; };
 		E4202FD21B667AA100C997FB /* ResponseSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CDE2C451AF89FF300BABAE5 /* ResponseSerialization.swift */; };
@@ -592,6 +596,7 @@
 		4CFB02F41D7D2FA20056F249 /* utf8_string.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = utf8_string.txt; sourceTree = "<group>"; };
 		4CFD6B132201338E00FFB5E3 /* CachedResponseHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedResponseHandlerTests.swift; sourceTree = "<group>"; };
 		4DD67C0B1A5C55C900ED2280 /* Alamofire.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Alamofire.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6D3957DD28DC0F430080446A /* IPTacticianer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPTacticianer.swift; sourceTree = "<group>"; };
 		E4202FE01B667AA100C997FB /* Alamofire.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Alamofire.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F8111E3319A95C8B0040E7D1 /* Alamofire.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Alamofire.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F8111E3719A95C8B0040E7D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -913,6 +918,7 @@
 				4C811F8C1B51856D00E0F59A /* ServerTrustEvaluation.swift */,
 				31FB2F8622C828D8007FD6D5 /* URLEncodedFormEncoder.swift */,
 				4CDE2C421AF89F0900BABAE5 /* Validation.swift */,
+				6D3957DD28DC0F430080446A /* IPTacticianer.swift */,
 			);
 			name = Features;
 			sourceTree = "<group>";
@@ -1517,6 +1523,7 @@
 				311B199220B0E3480036823B /* MultipartUpload.swift in Sources */,
 				4C4466ED21F8F5D800AC9703 /* CachedResponseHandler.swift in Sources */,
 				319917A2209CDA7F00103A19 /* SessionDelegate.swift in Sources */,
+				6D3957E028DC0F430080446A /* IPTacticianer.swift in Sources */,
 				4CF6270A1BA7CBF60011A099 /* ParameterEncoding.swift in Sources */,
 				4C256A1C21F1449C00AD5D87 /* RetryPolicy.swift in Sources */,
 				31991796209CDA7F00103A19 /* Request.swift in Sources */,
@@ -1605,6 +1612,7 @@
 				4C811F8E1B51856D00E0F59A /* ServerTrustEvaluation.swift in Sources */,
 				311B199120B0E3470036823B /* MultipartUpload.swift in Sources */,
 				4C4466EC21F8F5D800AC9703 /* CachedResponseHandler.swift in Sources */,
+				6D3957DF28DC0F430080446A /* IPTacticianer.swift in Sources */,
 				319917A1209CDA7F00103A19 /* SessionDelegate.swift in Sources */,
 				4C3D00551C66A63000D1F709 /* NetworkReachabilityManager.swift in Sources */,
 				4C256A1B21F1449C00AD5D87 /* RetryPolicy.swift in Sources */,
@@ -1648,6 +1656,7 @@
 				311B199320B0E3480036823B /* MultipartUpload.swift in Sources */,
 				4C4466EE21F8F5D800AC9703 /* CachedResponseHandler.swift in Sources */,
 				319917A3209CDA7F00103A19 /* SessionDelegate.swift in Sources */,
+				6D3957E128DC0F430080446A /* IPTacticianer.swift in Sources */,
 				E4202FD51B667AA100C997FB /* MultipartFormData.swift in Sources */,
 				4C256A1D21F1449C00AD5D87 /* RetryPolicy.swift in Sources */,
 				31991797209CDA7F00103A19 /* Request.swift in Sources */,
@@ -1691,6 +1700,7 @@
 				4C3D00541C66A63000D1F709 /* NetworkReachabilityManager.swift in Sources */,
 				311B199020B0D3B40036823B /* MultipartUpload.swift in Sources */,
 				4C4466EB21F8F5D800AC9703 /* CachedResponseHandler.swift in Sources */,
+				6D3957DE28DC0F430080446A /* IPTacticianer.swift in Sources */,
 				319917A0209CDA7F00103A19 /* SessionDelegate.swift in Sources */,
 				4CDE2C431AF89F0900BABAE5 /* Validation.swift in Sources */,
 				4C256A1A21F1449C00AD5D87 /* RetryPolicy.swift in Sources */,
